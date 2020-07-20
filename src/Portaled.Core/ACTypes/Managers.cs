@@ -6,6 +6,54 @@ using System.Text;
 
 namespace Portaled.Core.ACTypes
 {
+    public unsafe struct ScriptData
+    {
+        public double start_time;
+        public PhysicsScript* script;
+        public ScriptData* next_data;
+    };
+
+    public unsafe struct MotionList
+    {
+        public uint motion;
+        public float speed_mod;
+        public MotionList* next;
+    };
+
+    public unsafe struct MotionState
+    {
+        public uint style;
+        public uint substate;
+        public float substate_mod;
+        public MotionList* modifier_head;
+        public MotionList* action_head;
+        public MotionList* action_tail;
+    };
+
+    public unsafe struct ScriptManager
+    {
+        public CPhysicsObj* physobj;
+        public ScriptData* curr_data;
+        public ScriptData* last_data;
+        public int hook_index;
+        public double next_hook_time;
+    };
+
+    public unsafe struct MotionTableManager_AnimNode
+    {
+        public DLListData dlListData;
+        public uint motion;
+        public uint num_anims;
+    };
+
+    public unsafe struct MotionTableManager
+    {
+        public CPhysicsObj* physics_obj;
+        public CMotionTable* table;
+        public MotionState state;
+        public int animation_counter;
+        public DLList<MotionTableManager_AnimNode> pending_animations;
+    };
 
     public struct CInputHandler
     {
@@ -29,7 +77,6 @@ namespace Portaled.Core.ACTypes
         public Vector3 vector;
     }
 
-
     public unsafe struct AC1Legacy_SmartArray<T>
         where T : unmanaged
     {
@@ -51,7 +98,7 @@ namespace Portaled.Core.ACTypes
         public uint properties;
     };
 
-public unsafe struct GameSky
+    public unsafe struct GameSky
     {
         public AC1Legacy_SmartArray<CelestialPosition> sky_obj_pos;
         public AC1Legacy_SmartArray<TypedPointer<CPhysicsObj>> sky_obj;
@@ -77,8 +124,6 @@ public unsafe struct GameSky
         public CSurface* object_detail_surface;
     };
 
-
-
     public struct PackObj
     {
         public IntPtr vfptr;
@@ -100,7 +145,6 @@ public unsafe struct GameSky
         public uint objcell_id;
         public Frame frame;
     };
-
 
     public enum SoundType
     {
@@ -351,7 +395,6 @@ public unsafe struct GameSky
         public uint sizeOf;
     };
 
-
     public unsafe struct AC1Legacy_PQueueArray_PQueueNode<T>
         where T : unmanaged
     {
@@ -378,7 +421,6 @@ public unsafe struct GameSky
         public AC1Legacy_PQueueArray<double> sound_queue;
     };
 
-
     [StructLayout(LayoutKind.Sequential, Pack = 8)]
     public unsafe struct CellManager //align 8
     {
@@ -394,7 +436,6 @@ public unsafe struct GameSky
         public Position load_pos;
         public int keep_lscape_loaded;
     };
-
 
     public unsafe struct CameraSet
     {
@@ -467,6 +508,536 @@ public unsafe struct GameSky
         public int old_velocity_num;
         public bool m_bEnabled;
         public CameraSet* m_pCurrentCameraSet;
+    };
+
+    public enum HoldKey
+    {
+        HoldKey_Invalid = 0x0,
+        HoldKey_None = 0x1,
+        HoldKey_Run = 0x2,
+        Num_HoldKeys = 0x3,
+        FORCE_HoldKey_32_BIT = 0x7FFFFFFF,
+    };
+
+    public unsafe struct LListData
+    {
+        public LListData* llist_next;
+    };
+
+    public struct ActionNode
+    {
+        public LListData lListData;
+        public uint action;
+        public float speed;
+        public uint stamp;
+        public int autonomous;
+    };
+
+    public unsafe struct LListBase
+    {
+        public LListData* head_;
+        public LListData* tail_;
+    };
+
+    public struct LList<T>
+        where T : unmanaged
+    {
+        public LListBase list;
+    };
+
+    public struct RawMotionState
+    {
+        public PackObj packObj;
+        public LList<ActionNode> actions;
+        public HoldKey current_holdkey;
+        public uint current_style;
+        public uint forward_command;
+        public HoldKey forward_holdkey;
+        public float forward_speed;
+        public uint sidestep_command;
+        public HoldKey sidestep_holdkey;
+        public float sidestep_speed;
+        public uint turn_command;
+        public HoldKey turn_holdkey;
+        public float turn_speed;
+    };
+
+
+    /* 3455 */
+    public unsafe struct InterpretedMotionState
+    {
+        public PackObj packObj;
+        public uint current_style;
+        public uint forward_command;
+        public float forward_speed;
+        public uint sidestep_command;
+        public float sidestep_speed;
+        public uint turn_command;
+        public float turn_speed;
+        public LList<ActionNode> actions;
+    };
+
+    public struct CMotionInterp_MotionNode
+    {
+        public LListData llistData;
+        public uint context_id;
+        public uint motion;
+        public uint jump_error_code;
+    };
+
+    public unsafe struct CMotionInterp
+    {
+        public int initted;
+        public CWeenieObject* weenie_obj;
+        public CPhysicsObj* physics_obj;
+        public RawMotionState raw_state;
+        public InterpretedMotionState interpreted_state;
+        public float current_speed_factor;
+        public int standing_longjump;
+        public float jump_extent;
+        public uint server_action_stamp;
+        public float my_run_rate;
+        public LList<CMotionInterp_MotionNode> pending_motions;
+    };
+
+    public enum MovementTypes_Type
+    {
+      Invalid = 0x0,
+      RawCommand = 0x1,
+      InterpretedCommand = 0x2,
+      StopRawCommand = 0x3,
+      StopInterpretedCommand = 0x4,
+      StopCompletely = 0x5,
+      MoveToObject = 0x6,
+      MoveToPosition = 0x7,
+      TurnToObject = 0x8,
+      TurnToHeading = 0x9,
+      FORCE_Type_32_BIT = 0x7FFFFFFF,
+    };
+
+    [Flags]
+    public enum E9DF5898AC3667EE63853CA774377241C
+    {
+        can_walk = 0b00000000,
+        can_run = 0b00000001,
+        can_sidestep = 0b00000010,
+        can_walk_backwards = 0b00000100,
+        can_charge = 0b00001000,
+        fail_walk = 0b00010000,
+        use_final_heading = 0b00100000,
+        sticky = 0b01000000,
+        move_away = 0b10000000,
+        move_towards = 0b100000000,
+        use_spheres = 0b1000000000,
+        set_hold_key = 0b10000000000,
+        autonomous = 0b100000000000,
+        modify_raw_state = 0b1000000000000,
+        modify_interpreted_state = 0b10000000000000,
+        cancel_moveto = 0b100000000000000,
+        stop_completely = 0b1000000000000000,
+        disable_jump_during_link = 0b1000000000000000
+    };
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct E219484CD3FACC896A58537BA7B2DDF4E
+    {
+        [FieldOffset(0)]
+        public uint bitfield;
+        [FieldOffset(0)]
+        public E9DF5898AC3667EE63853CA774377241C __s1;
+    };
+
+    public struct MovementParameters 
+    {
+        public PackObj packObj;
+        public E219484CD3FACC896A58537BA7B2DDF4E ___u1;
+        public float distance_to_object;
+        public float min_distance;
+        public float desired_heading;
+        public float speed;
+        public float fail_distance;
+        public float walk_run_threshhold;
+        public uint context_id;
+        public HoldKey hold_key_to_apply;
+        public uint action_stamp;
+    };
+
+    public struct MoveToManager_MovementNode
+    {
+        public DLListData dlListData;
+        public MovementTypes_Type type;
+        public float heading;
+    };
+
+    [StructLayout(LayoutKind.Sequential, Pack = 8 )]
+    public unsafe struct MoveToManager
+    {
+        public MovementTypes_Type movement_type;
+        public Position sought_position;
+        public Position current_target_position;
+        public Position starting_position;
+        public MovementParameters movement_params;
+        public float previous_heading;
+        public float previous_distance;
+        public double previous_distance_time;
+        public float original_distance;
+        public double original_distance_time;
+        public uint fail_progress_count;
+        public uint sought_object_id;
+        public uint top_level_object_id;
+        public float sought_object_radius;
+        float sought_object_height;
+        public uint current_command;
+        public uint aux_command;
+        public int moving_away;
+        public int initialized;
+        public DLList<MoveToManager_MovementNode> pending_actions;
+        public CPhysicsObj* physics_obj;
+        public CWeenieObject* weenie_obj;
+    };
+
+    public struct NoticeHandler
+    {
+        public IntPtr vfptr;
+    }
+
+    public unsafe struct NoticeRegistrar
+    {
+        public IntPtr vfptr;
+        public HashTable<uint, TypedPointer<UnmanagedList<TypedPointer<NoticeHandler>>>>* m_handlers;
+    };
+
+    public enum TSRecvMode
+    {
+        TSRECV_BLOCK = 0x0,
+        TSRECV_LATESTONLY = 0x1,
+        FORCE_TSRecvMode_32_BIT = 0x7FFFFFFF,
+    };
+
+    public unsafe struct TSBlockedEntry
+    {
+        public TSBlockedEntry* m_pNext;
+        public uint m_stamp;
+        public ReferenceCountTemplate_1048576_0* m_pObj;
+    };
+
+    public struct TSRecv
+    {
+        public int receivedFirstEntry_;
+        public TSRecvMode mode_;
+        public uint overflowLimit_;
+        public uint highestStamp_;
+        public TSBlockedEntry head_;
+        public int numBlockedStamps_;
+        public double blockedSince_;
+    };
+
+    public unsafe struct NIListElement<T>
+        where T : unmanaged
+    {
+        public uint data_;
+        public NIListElement<T>* next_;
+    };
+
+    public unsafe struct NIList<T>
+        where T : unmanaged
+    {
+        public NIListElement<T>* head_;
+        public NIListElement<T>* tail_;
+    };
+
+    public unsafe struct CWeenieObject
+    {
+        public LongHashData hashData;
+        public NoticeRegistrar notice_registrar;
+        public double update_time;
+        public NIList<TypedPointer<NetBlob>>* netblob_list;
+        public TSRecv blobOrdering;
+    };
+
+    public unsafe struct UI64HashData 
+    {
+        public HashBaseData<ulong> data;
+    };
+
+    public enum NetBlob_State
+    {
+        NETBLOB_FROZEN = 0x0,
+        NETBLOB_SENDING = 0x1,
+        NETBLOB_RECEIVING = 0x2,
+        NETBLOB_RECEIVED = 0x3,
+        NETBLOB_FRAGMENTED = 0x4,
+        FORCE_State_32_BIT = 0x7FFFFFFF,
+    };
+
+    public unsafe struct NetBlob
+    {
+        public ReferenceCountTemplate_1048576_0 refTemplate;
+        public PackObj packObj;
+        public UI64HashData hashData;
+        public NetBlob_State state_;
+        public char* buf_;
+        public uint bufSize_;
+        public uint cMaxFragments_;
+        public uint numFragments_;
+        public ushort sender_;
+        public ushort queueID_;
+        public uint priority_;
+        public NetBlob* waitNext_;
+        public ulong savedNetBlobID_;
+    };
+
+
+    public unsafe struct InterpolationNode
+    {
+        public LListData llistData;
+        public uint type;
+        public Position p;
+        public AC1Legacy_Vector3 v;
+        public float extent;
+    };
+
+    public unsafe struct InterpolationManager
+    {
+        public LList<InterpolationNode> position_queue;
+        public CPhysicsObj* physics_obj;
+        public int keep_heading;
+        public uint frame_counter;
+        public float original_distance;
+        public float progress_quantum;
+        public int node_fail_counter;
+        public Position blipto_position;
+    };
+
+    public unsafe struct StickyManager
+    {
+        public uint target_id;
+        public float target_radius;
+        public Position target_position;
+        public CPhysicsObj* physics_obj;
+        public int initialized;
+        public double sticky_timeout_time;
+    };
+
+    public unsafe struct ConstraintManager
+    {
+        public CPhysicsObj* physics_obj;
+        public int is_constrained;
+        public float constraint_pos_offset;
+        public Position constraint_pos;
+        public float constraint_distance_start;
+        public float constraint_distance_max;
+    };
+
+    public unsafe struct PositionManager
+    {
+        public InterpolationManager* interpolation_manager;
+        public StickyManager* sticky_manager;
+        public ConstraintManager* constraint_manager;
+        public CPhysicsObj* physics_obj;
+    };
+
+    public unsafe struct CELLINFO
+    {
+        public uint cell_id;
+        public CObjCell* cell;
+    };
+
+    public unsafe struct CELLARRAY
+    {
+        public int added_outside;
+        public int do_not_load_cells;
+        public uint num_cells;
+        public DArray<CELLINFO> cells;
+    };
+
+    public enum DetectionType
+    {
+        NoChangeDetection = 0x0,
+        EnteredDetection = 0x1,
+        LeftDetection = 0x2,
+        FORCE_DetectionType_32_BIT = 0x7FFFFFFF,
+    };
+
+    public unsafe struct DetectionInfo
+    {
+        public uint object_id;
+        public DetectionType object_status;
+    };
+
+    public unsafe struct DetectionCylsphere
+    {
+        public uint context_id;
+        public float radius;
+        public int object_detected;
+        public DetectionInfo info;
+        public uint detection_type;
+    };
+
+    public unsafe struct LongNIHashData
+    {
+        public LongNIHashData* next;
+        public void* data;
+        public uint key;
+    };
+
+    public unsafe struct LongNIHash<T>
+        where T : unmanaged
+    {
+        public LongNIHashData** buckets;
+        public int table_size;
+    };
+
+    public unsafe struct OBJECTINFO
+    {
+        public CPhysicsObj* obj;
+        public int state;
+        public float scale;
+        public float step_up_height;
+        public float step_down_height;
+        public int ethereal;
+        public int step_down;
+        public uint targetID;
+    };
+
+    public struct ObjectInfo
+    {
+        public uint object_id;
+        public uint hit_location;
+    };
+
+    public struct AttackInfo
+    {
+        public uint attack_id;
+        public int part_index;
+        public float attack_radius;
+        public uint waiting_for_cells;
+        public uint num_objects;
+        public DArray<ObjectInfo> object_list;
+    };
+
+    public unsafe struct AttackManager
+    {
+        public float attack_radius;
+        public uint current_attack;
+        public LongNIHash<AttackInfo> pending_attacks;
+    };
+
+    public enum TargetStatus
+    {
+        Undef_TargetStatus = 0x0,
+        Ok_TargetStatus = 0x1,
+        ExitWorld_TargetStatus = 0x2,
+        Teleported_TargetStatus = 0x3,
+        Contained_TargetStatus = 0x4,
+        Parented_TargetStatus = 0x5,
+        TimedOut_TargetStatus = 0x6,
+        FORCE_TargetStatus_32_BIT = 0x7FFFFFFF,
+    };
+
+    public unsafe struct TargetInfo
+    {
+        public uint context_id;
+        public uint object_id;
+        public float radius;
+        public double quantum;
+        public Position target_position;
+        public Position interpolated_position;
+        public AC1Legacy_Vector3 interpolated_heading;
+        public AC1Legacy_Vector3 velocity;
+        public TargetStatus status;
+        public double last_update_time;
+    };
+
+    public unsafe struct TargetManager
+    {
+        public CPhysicsObj* physobj;
+        public TargetInfo* target_info;
+        public LongNIHash<TargettedVoyeurInfo>* voyeur_table;
+        public double last_update_time;
+    };
+
+    [StructLayout(LayoutKind.Sequential, Size = 8)]
+    public struct TargettedVoyeurInfo
+    {
+        public uint object_id;
+        public double quantum;
+        public float radius;
+        public Position last_sent_position;
+    };
+
+    [StructLayout(LayoutKind.Sequential, Pack = 8)]
+    public unsafe struct DetectionManager
+    {
+        public CPhysicsObj* physobj;
+        public LongNIHash<DetectionInfo>* detection_objects;
+        public uint num_pending_global_detect_updates;
+        public CELLARRAY* cell_array;
+        public double last_update_time;
+        public Position last_global_update;
+        public LongNIHash<DetectionCylsphere> detection_table;
+        public AC1Legacy_SmartArray<uint> pending_deletions;
+    };
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct E6E56156ABBED5B0767B81AF559A00DDB
+    {
+        [FieldOffset(0)]
+        public double birthtime;
+        [FieldOffset(0)]
+        public double last_update_time;
+    };
+
+    public unsafe struct Particle
+    {
+        public E6E56156ABBED5B0767B81AF559A00DDB ___u0;
+        public double lifespan;
+        public double lifetime;
+        public Frame start_frame;
+        public AC1Legacy_Vector3 offset;
+        public AC1Legacy_Vector3 a;
+        public AC1Legacy_Vector3 b;
+        public AC1Legacy_Vector3 c;
+        public float start_scale;
+        public float final_scale;
+        public float start_trans;
+        public float final_trans;
+    };
+
+    public unsafe struct ParticleEmitter
+    {
+        public uint id;
+        public CPhysicsObj* parent;
+        public uint part_index;
+        public Frame parent_offset;
+        public CPhysicsObj* physobj;
+        public ParticleEmitterInfo* info;
+        public Particle* particles;
+        public CPhysicsPart** part_storage;
+        public CPhysicsPart** parts;
+        public int degraded_out;
+        public float degrade_distance;
+        public double creation_time;
+        public int num_particles;
+        public int total_emitted;
+        public double last_emit_time;
+        public AC1Legacy_Vector3 last_emit_offset;
+        public int stopped;
+        public double last_update_time;
+    };
+
+    public struct ParticleManager
+    {
+        public uint next_emitter_id;
+        public LongNIHash<ParticleEmitter> particle_table;
+    };
+
+    public unsafe struct MovementManager
+    {
+        public CMotionInterp* motion_interpreter;
+        public MoveToManager* moveto_manager;
+        public CPhysicsObj* physics_obj;
+        public CWeenieObject* weenie_obj;
     };
 
      /* 
