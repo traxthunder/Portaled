@@ -37,7 +37,7 @@ namespace Portaled.Core.ACTypes
     {
         public IInputActionCallback actionCallback;
         public SmartBox* smartbox;
-        public CPhysicsObj* player;
+        public CPhysicsObj* player; //Look at Physics Obj
         public CommandList SubstateList;
         public CommandList TurnList;
         public CommandList SidestepList;
@@ -66,10 +66,15 @@ namespace Portaled.Core.ACTypes
 
     public unsafe struct CLostCell
     {
-        public IntrusiveHashData<uint, TypedPointer<CLostCell>> hashdata;
+        public IntrusiveHashData<uint, LostCellPointer> hashdata;
         public uint num_objects;
         public DArray<TypedPointer<CPhysicsObj>> objects;
     };
+
+    public unsafe struct LostCellPointer
+    {
+        public CLostCell* data;
+    }
 
     public unsafe struct IDListNode
     {
@@ -124,8 +129,14 @@ namespace Portaled.Core.ACTypes
     public unsafe struct HashSetData<T>
         where T : unmanaged
     {
-        public IntrusiveHashData<T, TypedPointer<HashSetData<T>>> data;
+        public IntrusiveHashData<T, HashSetDataPointer<T>> data;
     };
+
+    public unsafe struct HashSetDataPointer<T>
+        where T : unmanaged
+    {
+        public HashSetData<T>* data;
+    }
 
     public unsafe struct UnmanagedHashSet<T>
         where T : unmanaged

@@ -10,10 +10,9 @@ namespace Portaled.Core.ACTypes
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public unsafe struct DBObj
     {
-        public IntPtr vfptr;
+        public IntPtr vfptr; //Interface
         public uint m_dataCategory;
         public bool m_bLoaded;
-        public int none;
         public double m_timeStamp;
         public DBObj* m_pNext;
         public DBObj* m_pLast;
@@ -102,6 +101,7 @@ namespace Portaled.Core.ACTypes
     public struct SerializeUsingPackDBObj
     {
         public DBObj parent;
+        public PackObj packObj;
     };
 
 
@@ -618,21 +618,21 @@ namespace Portaled.Core.ACTypes
     {
         public SerializeUsingPackDBObj parent;
       /*  public CPartCell parent2;
-        LandDefs::WaterType water_type;
-    Position pos;
-    unsigned int num_objects;
-    DArray<CPhysicsObj*> object_list;
-    unsigned int num_lights;
-    DArray<LIGHTOBJ const *> light_list;
-    unsigned int num_shadow_objects;
-    DArray<CShadowObj*> shadow_object_list;
-    unsigned int restriction_obj;
-    ClipPlaneList** clip_planes;
-    unsigned int num_stabs;
-    unsigned int* stab_list;
-    int seen_outside;
-    LongNIValHash<GlobalVoyeurInfo>* voyeur_table;
-    CLandBlock* myLandBlock_;*/
+            LandDefs::WaterType water_type;
+        Position pos;
+        unsigned int num_objects;
+        DArray<CPhysicsObj*> object_list;
+        unsigned int num_lights;
+        DArray<LIGHTOBJ const *> light_list;
+        unsigned int num_shadow_objects;
+        DArray<CShadowObj*> shadow_object_list;
+        unsigned int restriction_obj;
+        ClipPlaneList** clip_planes;
+        unsigned int num_stabs;
+        unsigned int* stab_list;
+        int seen_outside;
+        LongNIValHash<GlobalVoyeurInfo>* voyeur_table;
+        CLandBlock* myLandBlock_;*/
     };
 
 

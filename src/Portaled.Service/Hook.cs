@@ -10,6 +10,7 @@ using System.IO;
 using Decal.Interop.Inject;
 using Portaled.Core;
 using Portaled.Service;
+using Portaled.Core.ACTypes;
 
 namespace Portaled.Hook
 {
@@ -92,7 +93,25 @@ namespace Portaled.Hook
 
                     var newFuncAddr = Marshal.GetFunctionPointerForDelegate(new Del((dbocache, qdid, arg3) =>
                     {
-
+                        if (DateTime.Now - PortaledLoader.BeginTime > TimeSpan.FromSeconds(2))
+                        {
+                            var cmdInterp = PortaledLoader.Instance?.Host?.Actions?.CommandInterpreter;
+                            if (cmdInterp != null)
+                            {
+                                var cmdInterpPtr = (CommandInterpreter*)new IntPtr(cmdInterp.Value);
+                                if ((uint)cmdInterpPtr->smartbox != 0)
+                                {
+                                    var sbox = (Core.ACTypes.SmartBox*)cmdInterpPtr->smartbox;
+                                    var physicsObjPlayer = (Core.ACTypes.CPhysicsObj*)cmdInterpPtr->player;
+                                    if ((uint)physicsObjPlayer != 0)
+                                    {
+                                        physicsObjPlayer->friction = Portaled.Service.PortaledLoader.Friction;
+                                    }
+                                    var objmaint = sbox->m_pObjMaint;
+                                }
+                            }
+                        }
+                        
 
                         if (qdid == 0x06003D44)
                         {
@@ -207,6 +226,37 @@ namespace Portaled.Hook
             }
         }
 
+        public static class SmartBox
+        {
+            //DOESN'T WORK, CRASHES RANDOMLY
+            public static class ProcessObjectNetBlobs
+            {
+                static IntPtr addr = new IntPtr(0x454bc0);
+
+                [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+                public delegate uint Del(IntPtr smartbox, IntPtr physicsObj);
+
+                public static Del oldDel = (Del)Marshal.GetDelegateForFunctionPointer(addr, typeof(Del));
+
+                public static void H()
+                {
+                    var newFuncAddr = Marshal.GetFunctionPointerForDelegate(new Del((smartbox, physicsObj) =>
+                    {
+                       
+
+                        var obj = (Portaled.Core.ACTypes.SmartBox*)smartbox.ToPointer();
+                        var pobj = (Portaled.Core.ACTypes.CPhysicsObj*)physicsObj.ToPointer();
+
+
+                        var result = oldDel(smartbox, physicsObj);
+
+                        return result;
+                    }));
+                    Hook.cHook.Hook(addr, newFuncAddr);
+                }
+            }
+
+        }
         static bool hooked = false;
         public static void HookAll()
         {
@@ -220,6 +270,7 @@ namespace Portaled.Hook
            // CSurface.InitEnd.H();
             ImgTex.Serialize.H();
             CLOCache.Ctor.H();
+          //  SmartBox.ProcessObjectNetBlobs.H();
         }
 
         

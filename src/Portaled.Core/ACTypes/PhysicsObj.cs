@@ -451,8 +451,7 @@ namespace Portaled.Core.ACTypes
         public HashBase<ulong> hashbase;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public unsafe struct CPhysicsObj
+    public unsafe struct CPhysicsObj //align 4
     {
         public LongHashData hash_data;
         public NIList<TypedPointer<NetBlob>>* netblob_list;
