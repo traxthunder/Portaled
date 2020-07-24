@@ -27,6 +27,11 @@ namespace Portaled.Core.ACTypes
     {
         public IntrusiveHashData<K, HashTableDataPointer<K, V>> m_intrusiveData;
         public BaseProperty m_data;
+
+        public BasePropertyDesc PropertyDesc
+        { 
+            get { return *m_data.m_pcPropertyDesc; }
+        }
     }
 
     public unsafe struct HashTableDataPointer<K,V>

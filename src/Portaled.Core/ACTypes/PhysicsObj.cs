@@ -151,6 +151,12 @@ namespace Portaled.Core.ACTypes
         public float Power;
     };
 
+    public unsafe class CMaterialEx 
+        : ACType<CMaterial>
+    {
+        public _D3DMATERIAL9 D3DMaterial {  get { return ptr->d3d_material; } set { ptr->d3d_material = value; } }
+    }
+
     public unsafe struct CMaterial
     {
         public IntPtr refCountvfPtr;
@@ -159,7 +165,7 @@ namespace Portaled.Core.ACTypes
         public _D3DMATERIAL9 d3d_material;
     };
 
-    public unsafe struct CPhysicsPart
+    public unsafe struct CPhysicsPart //Appears to be correct struct layout
     {
         public float CYpt;
         public AC1Legacy_Vector3 viewer_heading;
@@ -167,12 +173,12 @@ namespace Portaled.Core.ACTypes
         public uint deg_level;
         public int deg_mode;
         public int draw_state;
-        public CGfxObj** gfxobj;
+        public CGfxObj** gfxobj; //count = this->num_degrades
         public AC1Legacy_Vector3 gfxobj_scale;
         public Position pos;
         public Position draw_pos;
         public CMaterial* material;
-        public CSurface** surfaces;
+        public CSurface** surfaces; //count = gfxobj->num_surfaces
         public IDClass__tagDataID_32_0 original_palette_id;
         public float curTranslucency;
         public float curDiffuse;
@@ -181,7 +187,27 @@ namespace Portaled.Core.ACTypes
         public uint m_current_render_frame_num;
         public CPhysicsObj* physobj;
         public int physobj_index;
+
+        public GfxObjDegradeInfo Degrades => *degrades;
+        public CGfxObj GfxObj => *gfxobj[deg_level];
+        public CMaterial Material => *material;
+        public CSurface[] GetSurfaces()
+        {
+            var items = new CSurface[GfxObj.num_surfaces];
+            for(int i = 0; i < items.Length; i++)
+            {
+                items[i] = *this.surfaces[i];
+            }
+            return items;
+        }
     };
+
+    public unsafe class CPartArrayEx : ACType<CPartArray>
+    {
+        public uint PaState { get { return ptr->pa_state; } set { ptr->pa_state = value; } }
+        public CPhysicsObjEx Owner => CPhysicsObjEx.Make<CPhysicsObjEx>(ptr->owner);
+        
+    }
 
     public unsafe struct CPartArray
     {
@@ -449,6 +475,12 @@ namespace Portaled.Core.ACTypes
         where T : unmanaged
     {
         public HashBase<ulong> hashbase;
+    }
+
+    public unsafe class CPhysicsObjEx
+        : ACType<CPhysicsObj>
+    {
+        public CPhysicsObjEx Parent => CPhysicsObjEx.Make<CPhysicsObjEx>(ptr->parent);
     }
 
     public unsafe struct CPhysicsObj //align 4

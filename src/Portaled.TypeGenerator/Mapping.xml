@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<config id="MyMapping" xmlns="urn:SharpGen.Config">
+  <assembly>Portaled.TypeGenerator</assembly>
+  <namespace>Portaled.ACTypes</namespace>
+  <depends>SharpGen.Runtime</depends>
+
+  <bind from="int" to="System.Int32" />
+  <bind from="unsigned int" to="System.UInt32" />
+  <bind from="void*" to="IntPtr" />
+  <SharpGenPlatforms Include="Windows" />
+  <include-dir override="true">$(THIS_CONFIG_PATH)/include</include-dir>
+  <include file="acclient.h" namespace="Portaled.ACTypes" attach="true" />
+  
+</config>

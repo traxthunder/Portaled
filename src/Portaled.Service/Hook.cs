@@ -11,6 +11,7 @@ using Decal.Interop.Inject;
 using Portaled.Core;
 using Portaled.Service;
 using Portaled.Core.ACTypes;
+using Portaled.Interop;
 
 namespace Portaled.Hook
 {
@@ -90,25 +91,37 @@ namespace Portaled.Hook
 
                 public static void H()
                 {
-
                     var newFuncAddr = Marshal.GetFunctionPointerForDelegate(new Del((dbocache, qdid, arg3) =>
                     {
+                        var retval = oldDel(dbocache, qdid, arg3);
+
                         if (DateTime.Now - PortaledLoader.BeginTime > TimeSpan.FromSeconds(2))
                         {
                             var cmdInterp = PortaledLoader.Instance?.Host?.Actions?.CommandInterpreter;
                             if (cmdInterp != null)
                             {
-                                var cmdInterpPtr = (CommandInterpreter*)new IntPtr(cmdInterp.Value);
-                                if ((uint)cmdInterpPtr->smartbox != 0)
-                                {
-                                    var sbox = (Core.ACTypes.SmartBox*)cmdInterpPtr->smartbox;
-                                    var physicsObjPlayer = (Core.ACTypes.CPhysicsObj*)cmdInterpPtr->player;
-                                    if ((uint)physicsObjPlayer != 0)
-                                    {
-                                        physicsObjPlayer->friction = Portaled.Service.PortaledLoader.Friction;
-                                    }
-                                    var objmaint = sbox->m_pObjMaint;
-                                }
+                                var intptr = new IntPtr(cmdInterp.Value);
+                                var cmdInterpEx = Interop.CommandInterpreter.__CreateInstance(intptr);
+                                if (cmdInterpEx.Smartbox == null)
+                                    return retval;
+
+                                var sbox = cmdInterpEx.Smartbox;
+                                var physicsObjPlayer = cmdInterpEx.Player;
+                                if (physicsObjPlayer == null)
+                                    return retval;
+
+                                /*
+                                 * 
+                                CPartArray* partArray = physicsObjPlayer.part_array;
+                                CPhysicsPart** parts = partArray->parts;
+                                CPhysicsPart* parts2 = *parts;
+                                CPhysicsPart parts3 = *parts2; 
+
+                                Core.ACTypes.CSurface* surfaces = *(Core.ACTypes.CSurface**)parts2->surfaces;
+                                CGfxObj* gfx = *parts2->gfxobj;
+
+                                Core.ACTypes.ImgTex* tex = (Core.ACTypes.ImgTex*)surfaces->base1map;*/
+                                physicsObjPlayer.Friction = Portaled.Service.PortaledLoader.Friction;
                             }
                         }
                         
@@ -132,7 +145,7 @@ namespace Portaled.Hook
 
                         }
                         DBObjManager.OnDBObjGetRequest(dbocache, qdid, 0);
-                        return oldDel(dbocache, qdid, arg3);
+                        return retval;
                     }));
                     Hook.cHook.Hook(addr, newFuncAddr);
                 }

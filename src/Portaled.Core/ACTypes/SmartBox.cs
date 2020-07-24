@@ -33,6 +33,60 @@ namespace Portaled.Core.ACTypes
         public CommandListElement* current;
     };
 
+    public unsafe abstract class ACType<T>
+        where T : unmanaged
+    {
+        public IntPtr Underlying { get; private set; }
+        protected T* ptr { get; private set; }
+
+        private ACType(T* underlying)
+        {
+            this.Underlying = new IntPtr(underlying);
+            this.ptr = underlying;
+        }
+
+        public ACType() { }
+
+        public static U Make<U>(T* ptr)
+            where U : ACType<T>, new()
+        {
+            if ((uint)ptr == 0)
+                return null;
+            var u = new U()
+            {
+                Underlying = new IntPtr(ptr),
+                ptr = ptr
+            };
+            return u;
+        }
+
+        public static U Make<U>(IntPtr ptr)
+            where U : ACType<T>, new()
+        {
+            return Make<U>((T*)ptr.ToPointer());
+        }
+
+        public unsafe static A[] MakeArray<A,Struct>(Struct* ptr, int size)
+            where A : ACType<Struct>
+            where Struct : unmanaged
+        {
+            A[] array = new A[size];
+            for(int i = 0; i < size; i++)
+            {
+                var addr = ptr + i;
+                var intptr = new IntPtr(addr);
+                var ex = Make<A>(intptr);
+            }
+        }
+    }
+
+    public unsafe class CommandInterpreterEx
+        : ACType<CommandInterpreter>
+    {
+        public CPhysicsObjEx Player => CPhysicsObjEx.Make<CPhysicsObjEx>(ptr->player);
+        public SmartBoxEx SmartBox => SmartBoxEx.Make<SmartBoxEx>(ptr->smartbox);
+    }
+
     public unsafe struct CommandInterpreter
     {
         public IInputActionCallback actionCallback;
@@ -184,6 +238,10 @@ namespace Portaled.Core.ACTypes
         public CPhysicsObj* player;
         public LongHashIter<CPhysicsObj>* iter;
     };
+
+    public class SmartBoxEx : ACType<SmartBox>
+    {
+    }
 
     public unsafe struct SmartBox
     {

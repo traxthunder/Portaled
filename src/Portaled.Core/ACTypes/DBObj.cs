@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Portaled.Core.ACTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -44,7 +46,7 @@ namespace Portaled.Core.ACTypes
         SH_UNKNOWN = 0x0
     };
 
-    public unsafe struct CSurface
+    public unsafe struct CSurface //Appears to be correct structure
     {
         public DBObj parent;
         public GraphicsResource graphics;
@@ -104,27 +106,180 @@ namespace Portaled.Core.ACTypes
         public PackObj packObj;
     };
 
+    public unsafe struct BBox
+    {
+        public Vector3 m_vMin;
+        public Vector3 m_vMax;
+    };
 
-    public struct CGfxObj //(align(8))
+
+    public struct E393C16A032292777F0C3725FFB2C0008
+    {
+        public float x;
+        public float y;
+        public float z;
+    };
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ED554C44E56C320449443B6F5D299EEA7
+    {
+        [FieldOffset(0)]
+        public E393C16A032292777F0C3725FFB2C0008 __s0;
+        [FieldOffset(0)]
+        public AC1Legacy_Vector3 vertex;
+    };
+
+    public struct CVertex
+    {
+        public ED554C44E56C320449443B6F5D299EEA7 ___u0;
+        public uint reserve4;
+        public uint reserve5;
+        public uint reserve6;
+        public uint reserve7;
+        public uint reserve8;
+    };
+
+    public enum VertexType
+    {
+        UnknownVertexType = 0x0,
+        CSWVertexType = 0x1,
+        FORCE_VertexType_32_BIT = 0x7FFFFFFF,
+    };
+
+    public unsafe struct CVertexArray
+    {
+        public void* vertex_memory;
+        public BBox bbox;
+        public VertexType vertex_type;
+        public uint num_vertices;
+        public CVertex* vertices;
+    };
+
+    public unsafe struct Vec2Dscreen
+    {
+        public AC1Legacy_Vector3 vertex;
+        public float w;
+    };
+
+    public unsafe struct CPolygon
+    {
+        public CVertex** vertices;
+        public ushort* vertex_ids;
+        public Vec2Dscreen** screen;
+        public short poly_id;
+        public char num_pts;
+        public char stippling;
+        public int sides_type;
+        public char* pos_uv_indices;
+        public char* neg_uv_indices;
+        public ushort pos_surface;
+        public ushort neg_surface;
+        public Plane plane;
+    };
+
+    public struct IUnknown
+    {
+        public IntPtr vfptr;
+    };
+
+    public struct ID3DXBaseMesh
+    {
+        public IUnknown _interface;
+    };
+
+    public unsafe struct ID3DXMesh
+    {
+        public ID3DXBaseMesh mesh;
+    };
+
+    public struct CVec2Duv
+    {
+        public float u;
+        public float v;
+    };
+
+    public unsafe struct MeshBuffer
+    {
+        public ID3DXMesh* pMesh;
+        public RenderMesh* pRenderMesh;
+        public uint meshFVF;
+        public float detailTilingFactorSet;
+        public char* isStippledOrAlphaedMask;
+        public char burnedInStaticLights;
+        public bool m_bUseUVAnimation;
+        public CVec2Duv m_vUVDelta;
+        public uint m_RemoteSizeInBytes;
+    };
+
+    public struct CSphere
+    {
+        public AC1Legacy_Vector3 center;
+        public float radius;
+    };
+
+    [StructLayout(LayoutKind.Explicit)]
+    public unsafe struct E429348390AB0EFA2F7BE9421CDFA9E37
+    {
+        [FieldOffset(0)]
+        public int type;
+
+        [FieldOffset(0)]
+        public fixed char type_string[4];
+    }
+
+    public unsafe struct BSPNODE
+    {
+        public IntPtr vfptr;
+        public CSphere sphere;
+        public Plane splitting_plane;
+        public E429348390AB0EFA2F7BE9421CDFA9E37 ___u3;
+        public uint num_polys;
+        public CPolygon** in_polys;
+        public BSPNODE* pos_node;
+        public BSPNODE* neg_node;
+    };
+
+    public unsafe struct BSPTREE
+    {
+        public BSPNODE* root_node;
+        public BSPNODE RootNode => *root_node;
+    };
+
+    public static class ArrayWrapper
+    {
+    }
+
+    public unsafe class CGfxObjEx
+        : ACType<CGfxObj>
+    {
+        public CMaterialEx Material => CMaterialEx.Make<CMaterialEx>(ptr->material);
+        public CSurfaceEx[] GetSurfaces() => ArrayWrapper.Make2<CSurfaceEx>(m_rgsurfaces, ptr->num_surfaces);
+        {
+        }
+    }
+
+    public unsafe struct CGfxObj //(align(8))
     {
         public DBObj parent;
-     /*   public CMaterial* material;
-        public unsigned int num_surfaces;
+        public CMaterial* material;
+        public uint num_surfaces;
         public CSurface** m_rgSurfaces;
         public CVertexArray vertex_array;
-        public unsigned int num_physics_polygons;
+        public uint num_physics_polygons;
         public CPolygon* physics_polygons;
         public MeshBuffer* constructed_mesh;
         public int use_built_mesh;
         public CSphere* physics_sphere;
+        public CSphere PhysicsSphere => *physics_sphere;
         public BSPTREE* physics_bsp;
-        public AC1Legacy::Vector3 sort_center;
-        public unsigned int num_polygons;
+        public AC1Legacy_Vector3 sort_center;
+        public uint num_polygons;
         public CPolygon* polygons;
         public CSphere* drawing_sphere;
+        public CSphere DrawingSphere => *drawing_sphere;
         public BSPTREE* drawing_bsp;
         public BBox gfx_bound_box;
-        public IDClass<_tagDataID,32,0> m_didDegrade;*/
+        public IDClass__tagDataID_32_0 m_didDegrade;
     };
 
 
@@ -351,22 +506,49 @@ namespace Portaled.Core.ACTypes
     };
 
 
-    public unsafe struct RenderTexture //_declspec(align(8)) 
+    public enum TextureType
+    {
+        TEXTURETYPE_UNDEFINED = 0x1,
+        TEXTURETYPE_2D = 0x2,
+        TEXTURETYPE_3D = 0x3,
+        TEXTURETYPE_CUBE = 0x4,
+        TEXTURETYPE_MOVIE2D = 0x5,
+    };
+
+
+    public unsafe struct DBLevelResource
+    {
+        public PStringBase_char m_Name;
+        public IDClass__tagDataID_32_0 m_LevelID;
+        public RenderSurface* m_pResource;
+    };
+
+    public struct DBLevelInfo
+    {
+        public DBLevelResource m_Resources1;
+        public DBLevelResource m_Resources2;
+        public DBLevelResource m_Resources3;
+        public DBLevelResource m_Resources4;
+        public DBLevelResource m_Resources5;
+        public DBLevelResource m_Resources6;
+    };
+
+public unsafe struct RenderTexture //_declspec(align(8)) 
     {
         public DBObj parent;
         public GraphicsResource graphics;
-        /*TextureType m_TextureType;
-        unsigned int m_nNumLevels;
-        PixelFormatID m_PixelFormat;
-        unsigned int m_Flags;
-        bool m_bDropLevelsCalled;
-        unsigned int m_ManagedRefCount;
-        long double m_LastManagedReleaseTime;
-        bool m_AllowManagement;
-        SmartArray<DBLevelInfo,1> m_SourceLevels;
-        unsigned int m_nWidth;
-        unsigned int m_nHeight;
-        unsigned int m_nEdgeLength;*/
+        public TextureType m_TextureType;
+        public uint m_nNumLevels;
+        public PixelFormatID m_PixelFormat;
+        public uint m_Flags;
+        public bool m_bDropLevelsCalled;
+        public uint m_ManagedRefCount;
+        public double m_LastManagedReleaseTime;
+        public bool m_AllowManagement;
+        public SmartArray<DBLevelInfo> m_SourceLevels;
+        public uint m_nWidth;
+        public uint m_nHeight;
+        public uint m_nEdgeLength;
     };
 
 
