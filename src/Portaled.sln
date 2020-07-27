@@ -5,10 +5,6 @@ VisualStudioVersion = 16.0.30225.117
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Portaled.Service", "Portaled.Service\Portaled.Service.csproj", "{B881D43F-9566-47D3-B2E4-03B3BB9C5F22}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Portaled.Core", "Portaled.Core\Portaled.Core.csproj", "{D6D66D58-188A-4264-ACAF-9867A54528C3}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{DE9A2243-912D-42C3-87D2-C593D3ADB14F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Portaled.Interop", "Portaled.Interop\Portaled.Interop.csproj", "{714287D9-1E2D-4898-869B-29CB995B50A7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Portaled.TypeGenerator", "Portaled.TypeGenerator\Portaled.TypeGenerator.csproj", "{01E459A1-EB45-4A65-8D13-52F307DA7EE5}"
@@ -23,14 +19,6 @@ Global
 		{B881D43F-9566-47D3-B2E4-03B3BB9C5F22}.Debug|x86.Build.0 = Debug|Any CPU
 		{B881D43F-9566-47D3-B2E4-03B3BB9C5F22}.Release|x86.ActiveCfg = Release|Any CPU
 		{B881D43F-9566-47D3-B2E4-03B3BB9C5F22}.Release|x86.Build.0 = Release|Any CPU
-		{D6D66D58-188A-4264-ACAF-9867A54528C3}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{D6D66D58-188A-4264-ACAF-9867A54528C3}.Debug|x86.Build.0 = Debug|Any CPU
-		{D6D66D58-188A-4264-ACAF-9867A54528C3}.Release|x86.ActiveCfg = Release|Any CPU
-		{D6D66D58-188A-4264-ACAF-9867A54528C3}.Release|x86.Build.0 = Release|Any CPU
-		{DE9A2243-912D-42C3-87D2-C593D3ADB14F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{DE9A2243-912D-42C3-87D2-C593D3ADB14F}.Debug|x86.Build.0 = Debug|Any CPU
-		{DE9A2243-912D-42C3-87D2-C593D3ADB14F}.Release|x86.ActiveCfg = Release|Any CPU
-		{DE9A2243-912D-42C3-87D2-C593D3ADB14F}.Release|x86.Build.0 = Release|Any CPU
 		{714287D9-1E2D-4898-869B-29CB995B50A7}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{714287D9-1E2D-4898-869B-29CB995B50A7}.Debug|x86.Build.0 = Debug|Any CPU
 		{714287D9-1E2D-4898-869B-29CB995B50A7}.Release|x86.ActiveCfg = Release|Any CPU
