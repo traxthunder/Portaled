@@ -40,6 +40,7 @@ namespace Portaled.Service
             {
                 BeginTime = DateTime.Now;
                 Instance = this;
+                Managers.DatIOManager.Initialize();
                 Hook.HookMain.HookAll();
 
                 base.CommandLineText += PortaledLoader_CommandLineText;

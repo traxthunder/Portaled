@@ -36,6 +36,9 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CppSharp.Runtime">
+      <HintPath>..\..\CppSharp\CppSharp.Runtime.dll</HintPath>
+    </Reference>
     <Reference Include="NetLegacySupport.Action, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b53845dedb3ed59d, processorArchitecture=MSIL">
       <HintPath>..\packages\NetLegacySupport.Action.1.1.1\lib\net35\NetLegacySupport.Action.dll</HintPath>
     </Reference>
@@ -50,7 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="InteropExtensions.cs" />
     <Compile Include="Portaled.Interop.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Std.cs" />

@@ -7,7 +7,7 @@
 #include "enums.h"
 #include "hash.h"
 #include "list.h"
-
+#include "dbocache.h"
 
 
 
@@ -23,18 +23,58 @@ struct Plane
 };
 
 
-struct __declspec(align(4)) DBObj : Interface
+
+
+
+
+class DBOCache
 {
-	unsigned int m_dataCategory;
-	bool m_bLoaded;
-	long double m_timeStamp;
-	DBObj* m_pNext;
-	DBObj* m_pLast;
-	DBOCache* m_pMaintainer;
-	int m_numLinks;
-	IDClass_tagDataID_32_0 m_DID;
-	bool m_AllowedInFreeList;
+	public:
+		virtual void* __vecDelDtor (unsigned int);
+		virtual void DONOTUSE_1();
+		virtual void DONOTUSE_2();
+		//virtual struct Collection* GetCollection (IDClass_tagDataID_32_0);
+		virtual struct Collection* GetCollection(unsigned int);
+		virtual bool SetCollection(struct Collection*);
+		virtual unsigned int Release(unsigned int);
+		//virtual unsigned int Release(IDClass_tagDataID_32_0);
+		virtual bool AddObj(DBObj*);
+		virtual bool RemoveObj(unsigned int);
+		//virtual bool RemoveObj(IDClass_tagDataID_32_0);
+		virtual bool CanLoadFromDisk();
+		virtual bool CanRequestFromNet();
+		virtual void FlushFreeObjects();
+		virtual bool SaveObjectToDisk(PreprocHeader*, DBObj*);
+		virtual bool ReloadObject(unsigned int);
+		//virtual bool ReloadObject(IDClass_tagDataID_32_0);
+		virtual void LastWords();
+		virtual bool AddObj_Internal(DBObj*);
+		virtual void RemoveObj_Internal(DBObj*);
+		virtual void FreeObject(DBObj*);
+		virtual void DestroyObj(DBObj*);
+		virtual void FreelistAdd(DBObj*);
+		virtual void FreelistRemove(DBObj*);
+		virtual DBObj* FreelistRemoveOldest();
+
+//		DBOCacheVtbl* vfptr;
+		//AutoGrowHashTable<IDClass_tagDataID_32_0, DBObj*> m_ObjTable;
+		DBObjTable m_ObjTable;
+		unsigned int m_dbtype;
+		HashTable<unsigned long, float, 0> m_fidelityTable;
+		bool m_fCanKeepFreeObjs;
+		bool m_fKeepFreeObjs;
+		bool m_bFreelistActive;
+		FreelistDef m_freelistDef;
+		DBObj* m_pOldestFree;
+		DBObj* m_pYoungestFree;
+		unsigned int m_nFree;
+		unsigned int m_nTotalCount;
+		void* m_pfnAllocator;
+
+
 };
+
+
 
 struct InputMapConflictsValue
 {
@@ -353,17 +393,21 @@ struct CSequence : PackObj
 };
 
 
-struct GraphicsResource
+class GraphicsResource
 {
-	//GraphicsResourceVtbl* vfptr;
-	void* vfptr;
-	__declspec(align(8)) bool m_bIsLost;
-	long double m_TimeUsed;
-	unsigned int m_FrameUsed;
-	bool m_bIsThrashable;
-	bool m_AutoRestore;
-	unsigned int m_nResourceSize;
-	unsigned int m_ListIndex;
+	public:
+		virtual void* __vecDelDtor(unsigned int);
+		virtual bool CopyInto(GraphicsResource*);
+		virtual bool PurgeResource();
+		virtual bool RestoreResource();
+
+		__declspec(align(8)) bool m_bIsLost;
+		long double m_TimeUsed;
+		unsigned int m_FrameUsed;
+		bool m_bIsThrashable;
+		bool m_AutoRestore;
+		unsigned int m_nResourceSize;
+		unsigned int m_ListIndex;
 };
 
 
@@ -434,6 +478,29 @@ struct __declspec(align(4)) RenderSurface
 	bool m_ReadOnlyLock;
 };
 
+
+struct IUnknown
+{
+	void* vfptr;
+};
+
+
+struct IDirect3DResource9 : IUnknown
+{
+
+};
+struct IDirect3DSurface9 : IDirect3DResource9
+{
+};
+
+__declspec(align(8)) struct RenderSurfaceD3D
+{
+	RenderSurface parent;
+	IDirect3DSurface9* m_pD3DSurface;
+	_D3DPOOL m_pool;
+	bool m_CountAsSystemMemory;
+	bool m_CountAsVideoMemory;
+};
 
 
 
@@ -602,16 +669,76 @@ struct LIGHTLIST
 	LIGHTOBJ* lightobj;
 };
 
+struct MotionState
+{
+	unsigned int style;
+	unsigned int substate;
+	float substate_mod;
+	MotionList* modifier_head;
+	MotionList* action_head;
+	MotionList* action_tail;
+};
+
+
+struct MotionTableManager_AnimNode : DLListData
+{
+	unsigned int motion;
+	unsigned int num_anims;
+};
+
+
+
+
+struct AnimData : PackObj
+{
+	IDClass_tagDataID_32_0 anim_id;
+	int low_frame;
+	int high_frame;
+	float framerate;
+};
+
+
+struct __declspec(align(4)) MotionData
+{
+	PackObj obj;
+	LongHashData data;
+	char num_anims;
+	AnimData* anims;
+	AC1Legacy_Vector3 velocity;
+	AC1Legacy_Vector3 omega;
+	char bitfield;
+};
+
+
+const struct __declspec(align(8)) CMotionTable : SerializeUsingPackDBObj
+{
+	LongNIValHash<unsigned long> style_defaults;
+	LongHash<MotionData> cycles;
+	LongHash<MotionData> modifiers;
+	LongNIValHash<LongHash<MotionData>*> links;
+	unsigned int default_style;
+};
+
+
+struct MotionTableManager
+{
+	CPhysicsObj* physics_obj;
+	CMotionTable* table;
+	MotionState state;
+	int animation_counter;
+	DLList<MotionTableManager_AnimNode> pending_animations;
+};
+
 
 struct CPartArray
 {
 	unsigned int pa_state;
 	CPhysicsObj* owner;
 	CSequence sequence;
-	MotionTableManager* motion_table_manager;
+	MotionTableManager* motion_table_manager; //Fine
 	struct CSetup* setup;
 	unsigned int num_parts;
-	CPhysicsPart** parts;
+	CPhysicsPart** parts; //Not showing up correctly
 	AC1Legacy_Vector3 scale;
 	Palette** pals;
 	LIGHTLIST* lights;
@@ -797,5 +924,148 @@ struct CommandInterpreter
 	const long double time_between_position_events;
 };
 
+struct TDynamicCircularArray
+{
+	void* vfptr;
+	AsyncCache_CCallbackHandler** A;
+	unsigned int first;
+	unsigned int next;
+	unsigned int count;
+	unsigned int max;
+	unsigned int growsize;
+};
+
+struct QualifiedDataID
+{
+	unsigned int Type;
+	IDClass_tagDataID_32_0 ID;
+};
+
+
+template <typename K, typename V, size_t S>
+struct IntrusiveHashIterator
+{
+	IntrusiveHashTable<K, V, S>* m_currHashTable;
+	V* m_currBucket;
+	V m_currElement;
+};
+
+struct QualifiedDataIDArray : IntrusiveHashTable<QualifiedDataID, DBObjSaveInfo*, 1>
+{
+	IntrusiveHashIterator<QualifiedDataID, DBObjSaveInfo*, 1> m_CurBracketIterator;
+	unsigned int m_LastBracketIndex;
+};
+
+
+
+union E6132C438F0B638693FB2F3E0AF1DACE5
+{
+	unsigned int Op;
+	AsyncCache_AsyncOperation eOp;
+};
+
+struct AsyncCache_CAsyncRequest : ReferenceCountTemplate_1048576_0
+{
+	AsyncResult Result;
+	E6132C438F0B638693FB2F3E0AF1DACE5 ___u2;
+	QualifiedDataID qdid;
+	SmartArray<AsyncCache_CAsyncRequest_CCallbackWrapper> m_pCallbacks;
+	DBObj* m_pObj;
+};
+
+
+struct AsyncCacheCallback
+{
+	void* vfptr;
+};
+
+
+/*
+ __declspec(align(4)) struct AsyncCache
+{
+	void* vfptr;
+	TDynamicCircularArray m_PendingCallbacks;
+	AutoGrowHashTable<QualifiedDataID, CAsyncGetRequest*> m_PendingGets;
+	AutoGrowHashTable<AsyncContext, AsyncCache_CCallbackHandler*> m_BusyCallbacks;
+	unsigned int dwNextCallbackHandle;
+	bool m_bCallingPendingCallbacks;
+};
+*/
+
+__declspec(align(4)) class AsyncCache
+{
+	public:
+		virtual DBObj* (BlockingGet)(unsigned int, QualifiedDataID*);
+		//_BYTE gap4[16];
+		virtual void UNUSED1();
+		virtual void UNUSED2();
+		virtual void UNUSED3();
+		virtual void UNUSED4();
+		virtual AsyncContext* AsyncGet(AsyncContext* result, unsigned int, QualifiedDataID*, AsyncCacheCallback*, unsigned int);
+		virtual void AsyncGetImmediate(AsyncContext*, unsigned int, QualifiedDataIDArray*, AsyncCacheCallback*, unsigned int);
+		virtual void UNUSED5(); //virtual __declspec(align(8)) $F1026C46A91364D736E48DC9BF562217 ___u3;
+		virtual void UNUSED6();
+		virtual AsyncContext*  AsyncSave(AsyncContext* result, QualifiedDataID*, Cache_Pack_t*, unsigned __int64, AsyncCacheCallback*, unsigned int);
+		virtual void UNUSED7();//virtual _BYTE gap28[8];
+		virtual void UNUSED8();
+		//virtual $3578EF11CE7628A82DA0CA7D8F8BA153 ___u5;
+		virtual void UNUSED9();
+		virtual void ReleaseContext(AsyncContext);
+		virtual DBOCache*  GetDBOCache(QualifiedDataID*);
+		virtual bool IsOnDisk(QualifiedDataID*);
+		virtual bool AreOnDisk(QualifiedDataIDArray*);
+		virtual void UseTime(); //__declspec(align(8));
+		virtual void UNUSED10();
+		virtual void HashAndEnqueue(CAsyncGetRequest*);
+		virtual void EnqueueAsyncRequest(AsyncCache_CAsyncRequest*);
+		virtual void UnhashPendingGet(CAsyncGetRequest*, CAsyncGetRequest*);
+		virtual void FlushPendingRequests();
+		virtual void OnRequestFinished(AsyncCache_CAsyncRequest*);
+		virtual void OnGetRequestFinished(CAsyncGetRequest*);
+		virtual void OnSaveRequestFinished(CAsyncSaveRequest*);
+		virtual void OnPurgeRequestFinished(CAsyncPurgeRequest*);
+		virtual void NotifyCallback(AsyncCache_CAsyncRequest*);
+		virtual void OnAsyncGetFinished(CAsyncGetRequest*);
+		virtual void CallPendingCallbacks();
+		virtual DBObj* BlockingGetFromDisk(QualifiedDataID*, DBOCache*);
+		virtual bool BlockingLoadInto(DBObj*, QualifiedDataID*, DBOCache*);
+		virtual bool SerializeFromCachePack(DBObj*, Cache_Pack_t*);
+		virtual DBObj* GetIfInMemory(QualifiedDataID*, DBOCache*);
+		virtual DBObj* GetFreeObj(QualifiedDataID*, DBOCache*);
+		virtual bool AsyncGetFromOtherSources(QualifiedDataID*, DBOCache*);
+		virtual void OnAsyncGetFromOtherSourcesFailed(QualifiedDataID*);
+		virtual bool AddObjToDBOCache(DBObj*, DBOCache*);
+		virtual DiskController* GetDiskController(QualifiedDataID*, unsigned __int64);
+		virtual bool LoadData(QualifiedDataID*, Cache_Pack_t*, unsigned __int64);
+		virtual bool SaveData(QualifiedDataID*, Cache_Pack_t*, unsigned __int64);
+		virtual bool PurgeData(QualifiedDataID*, unsigned __int64);
+
+		TDynamicCircularArray m_PendingCallbacks;
+		AutoGrowHashTable<QualifiedDataID, CAsyncGetRequest*> m_PendingGets;
+		AutoGrowHashTable<AsyncContext, AsyncCache_CCallbackHandler*> m_BusyCallbacks;
+		unsigned int dwNextCallbackHandle;
+		bool m_bCallingPendingCallbacks;
+};
+
+
+struct IDataGraph
+{
+	void* vfptr;
+};
+
+
+struct DBCache
+{
+	Interface _interface;
+	AsyncCache asyncCache;
+	Turbine_RefCount m_cTurbineRefCount;
+	IDClass_tagDataID_32_0 m_MasterMapID;
+	unsigned int m_CurrentRegion;
+	unsigned int m_LocalLanguage;
+	bool m_bRuntime;
+	bool m_bIsClient;
+	bool m_bIsServer;
+	IDataGraph* m_pDataGraph;
+};
 
 #endif

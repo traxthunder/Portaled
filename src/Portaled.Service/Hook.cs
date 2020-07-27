@@ -8,10 +8,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using Decal.Interop.Inject;
-using Portaled.Core;
 using Portaled.Service;
-using Portaled.Core.ACTypes;
 using Portaled.Interop;
+using Portaled.Service.Managers;
 
 namespace Portaled.Hook
 {
@@ -89,6 +88,10 @@ namespace Portaled.Hook
 
                 public static Del oldDel = (Del)Marshal.GetDelegateForFunctionPointer(addr, typeof(Del));
 
+                static Portaled.Interop.AsyncCache cache;
+
+                static Dictionary<uint, Portaled.Interop.DBOCache> caches = new Dictionary<uint, Portaled.Interop.DBOCache>();
+                static bool cachesInitialized = false;
                 public static void H()
                 {
                     var newFuncAddr = Marshal.GetFunctionPointerForDelegate(new Del((dbocache, qdid, arg3) =>
@@ -106,10 +109,16 @@ namespace Portaled.Hook
                                     return retval;
 
                                 var sbox = cmdInterpEx.Smartbox;
-                                var physicsObjPlayer = cmdInterpEx.Player;
+                                var physicsObjPlayer = cmdInterpEx.Player;//FINE
                                 if (physicsObjPlayer == null)
                                     return retval;
-
+                                var partarray = physicsObjPlayer.PartArray;
+                                var parts = partarray.Parts; //BROKEN
+                                var setup = partarray.Setup;
+                                var cache = setup.Dbobj.Dbobj.MPMaintainer;
+                                
+                                var table = cache.MObjTable.MIntrusiveTable;
+                                var buckets = table.Buckets;
                                 /*
                                  * 
                                 CPartArray* partArray = physicsObjPlayer.part_array;
@@ -119,32 +128,44 @@ namespace Portaled.Hook
 
                                 Core.ACTypes.CSurface* surfaces = *(Core.ACTypes.CSurface**)parts2->surfaces;
                                 CGfxObj* gfx = *parts2->gfxobj;
+                                
+                                Core.ACTypes.ImgTex* tex = (Core.ACTypes.ImgTex*)surfaces->base1map;*/ //table.Buckets[(0x0200058e % table.MNumBuckets)].MData.MDID.Id.Id == 0x0200058e
 
-                                Core.ACTypes.ImgTex* tex = (Core.ACTypes.ImgTex*)surfaces->base1map;*/
+                                foreach(var bucket in buckets)
+                                {
+                                    if (bucket != null)
+                                    {
+                                        if (bucket.MData != null)
+                                        {
+                                            var qdid1 = bucket.MData.MDID.Id.Id;
+                                            if (qdid1 >= 0x02000000 && qdid1 < 0x03000000)
+                                            {
+                                                var csetup = Portaled.Interop.CSetup.__CreateInstance(bucket.MData.__Instance);
+                                                //0x009d3808
+                                                //0x009d3930
+                                            }
+                                        }
+                                    }
+                                }
+
+                                var cacheptr = new IntPtr(*(int*)new IntPtr(0x00837bac).ToPointer());
+                                
+                                var cachemain = Portaled.Interop.DBCache.__CreateInstance(cacheptr);
+                                if (GetIfInMemory.cache == null)
+                                    GetIfInMemory.cache = cachemain.AsyncCache;
+
+
+                                DatIOManager.Initialize();
+
+                                var t1 = Portaled.Service.Managers.DatIOManager.GetByDID<Portaled.Service.DBObj.RenderSurface>(0x060018F9);
+                                var t2 = t1.Underlying.MPSurfaceBits;
+                                var t3 = t1.Underlying.SourceData.SourceBits;
+
+
                                 physicsObjPlayer.Friction = Portaled.Service.PortaledLoader.Friction;
                             }
                         }
                         
-
-                        if (qdid == 0x06003D44)
-                        {
-                            var Obj = oldDel(dbocache, qdid, arg3);
-                            var tex = (Portaled.Core.ACTypes.ImgTex*)Obj.ToPointer();
-                            
-                            var cache = new Portaled.Core.WrappedTypes.DBOCacheEx(dbocache);
-                            cache.Test(qdid);
-
-                            //if (cache.ContainsDID(qdid))
-                            //{
-                            //    var dbobj = cache.GetDBObj(qdid);
-                            //}
-                        }
-
-                        if (arg3 != 0)
-                        {
-
-                        }
-                        DBObjManager.OnDBObjGetRequest(dbocache, qdid, 0);
                         return retval;
                     }));
                     Hook.cHook.Hook(addr, newFuncAddr);
@@ -196,16 +217,6 @@ namespace Portaled.Hook
                     var newFuncAddr = Marshal.GetFunctionPointerForDelegate(new Del((surface, type) =>
                     {
                         var tex = oldDel(surface, type);
-                        var obj = (Portaled.Core.ACTypes.CSurface*)surface.ToPointer();
-
-                        //Log id
-                        textureIds.Add(obj->orig_texture_id.id);
-                        
-                        //Replace texture with random texture that we've encountered
-                        var newId = textureIds[r.Next(textureIds.Count - 1)];
-                        obj->orig_texture_id.id = newId;
-
-                        var texobj = (Portaled.Core.ACTypes.ImgTex*)tex.ToPointer();
                         return tex;
                     }));
                     Hook.cHook.Hook(addr, newFuncAddr);
@@ -228,10 +239,7 @@ namespace Portaled.Hook
                 {
                     var newFuncAddr = Marshal.GetFunctionPointerForDelegate(new Del((tex, archive) =>
                     {
-                        var texobj = (Portaled.Core.ACTypes.ImgTex*)tex.ToPointer();
-                        
                         var result = oldDel(tex, archive);
-                        var texobj2 = (Portaled.Core.ACTypes.ImgTex*)result.ToPointer();
                         return result;
                     }));
                     Hook.cHook.Hook(addr, newFuncAddr);
@@ -255,14 +263,7 @@ namespace Portaled.Hook
                 {
                     var newFuncAddr = Marshal.GetFunctionPointerForDelegate(new Del((smartbox, physicsObj) =>
                     {
-                       
-
-                        var obj = (Portaled.Core.ACTypes.SmartBox*)smartbox.ToPointer();
-                        var pobj = (Portaled.Core.ACTypes.CPhysicsObj*)physicsObj.ToPointer();
-
-
                         var result = oldDel(smartbox, physicsObj);
-
                         return result;
                     }));
                     Hook.cHook.Hook(addr, newFuncAddr);
@@ -270,6 +271,38 @@ namespace Portaled.Hook
             }
 
         }
+
+
+        public static class AsyncCache
+        {
+            public static class BlockingLoadInto
+            {
+                static IntPtr addr = new IntPtr(0x417c60);
+
+                [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+                public delegate IntPtr Del(IntPtr asyncCache, IntPtr dbObj, IntPtr qdid, IntPtr dbocache);
+
+                public static Del oldDel = (Del)Marshal.GetDelegateForFunctionPointer(addr, typeof(Del));
+
+                public static void H()
+                {
+                    var newFuncAddr = Marshal.GetFunctionPointerForDelegate(new Del((_asyncCache, _dbobj, _qdid, _dbocache) =>
+                    {
+                        var asynccache = Interop.AsyncCache.__CreateInstance(_asyncCache);
+                        var dbobj = Interop.DBObj.__CreateInstance(_dbobj);
+                        var qdid = Interop.QualifiedDataID.__CreateInstance(_qdid);
+                        var dbocache = Interop.DBOCache.__CreateInstance(_dbocache);
+                        DatIOManager.OnBeforeBlockingLoadInto(asynccache, dbobj, qdid, dbocache);
+                        var res = oldDel(_asyncCache, _dbobj, _qdid, _dbocache);
+                        //var loadedDBObj = Interop.DBObj.__CreateInstance(res);
+                        DatIOManager.OnAfterBlockingLoadInto(asynccache, dbobj, qdid, dbocache);
+                        return res;
+                    }));
+                    Hook.cHook.Hook(addr, newFuncAddr);
+                }
+            }
+        }
+
         static bool hooked = false;
         public static void HookAll()
         {
@@ -283,7 +316,8 @@ namespace Portaled.Hook
            // CSurface.InitEnd.H();
             ImgTex.Serialize.H();
             CLOCache.Ctor.H();
-          //  SmartBox.ProcessObjectNetBlobs.H();
+            //  SmartBox.ProcessObjectNetBlobs.H();
+            AsyncCache.BlockingLoadInto.H();
         }
 
         

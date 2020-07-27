@@ -1024,30 +1024,11 @@ struct AnimFrame
 };
 
 
-struct MotionState
-{
-  unsigned int style;
-  unsigned int substate;
-  float substate_mod;
-  MotionList *modifier_head;
-  MotionList *action_head;
-  MotionList *action_tail;
-};
-
 
 struct DLList<MotionTableManager_AnimNode> : DLListBase
 {
 };
 
-
-struct MotionTableManager
-{
-  CPhysicsObj *physics_obj;
-  CMotionTable *table;
-  MotionState state;
-  int animation_counter;
-  DLList<MotionTableManager_AnimNode> pending_animations;
-};
 
 
 struct CSphere
@@ -1579,15 +1560,6 @@ struct LongNIValHash<LongHash<MotionData> *> : HashBase<unsigned long>
 };
 
 
-const struct __declspec(align(8)) CMotionTable : SerializeUsingPackDBObj
-{
-  LongNIValHash<unsigned long> style_defaults;
-  LongHash<MotionData> cycles;
-  LongHash<MotionData> modifiers;
-  LongNIValHash<LongHash<MotionData> *> links;
-  unsigned int default_style;
-};
-
 
 struct MotionList
 {
@@ -2114,10 +2086,6 @@ struct __declspec(align(4)) RenderSurface : DBObj, GraphicsResource
   bool m_ReadOnlyLock;
 };
 
-
-struct IDirect3DResource9 : IUnknown
-{
-};
 
 
 struct IDirect3DBaseTexture9 : IDirect3DResource9

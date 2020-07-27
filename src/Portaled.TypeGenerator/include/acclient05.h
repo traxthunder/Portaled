@@ -1678,9 +1678,6 @@ struct IDirect3DSwapChain9 : IUnknown
 };
 
 
-struct IDirect3DSurface9 : IDirect3DResource9
-{
-};
 
 
 struct IDirect3DVolume9 : IUnknown
@@ -4090,10 +4087,6 @@ struct ComponentData : DLListData
   unsigned int numItems;
 };
 
-
-struct DLList<ComponentData> : DLListBase
-{
-};
 
 
 struct IntrusiveHashTable<unsigned long,HashTableData<unsigned long,IDClass<_tagDataID,32,0> > *,0>

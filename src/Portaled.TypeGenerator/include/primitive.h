@@ -33,6 +33,12 @@ struct _tagDataID
 
 
 
+struct ReferenceCountTemplate_1048576_0
+{
+	void* vfptr;
+	unsigned int m_cRef;
+};
+
 struct UserBindingValue
 {
 	unsigned int m_eActionClass;
@@ -4141,6 +4147,17 @@ struct SqCoord
 	int x;
 	int y;
 };
+
+
+
+struct FreelistDef
+{
+	bool m_bRecycle;
+	bool m_bShrink;
+	unsigned int m_nIdealSize;
+	unsigned int m_nMaxSize;
+};
+
 
 
 struct __declspec(align(8)) CPhysicsObj_CollisionRecord

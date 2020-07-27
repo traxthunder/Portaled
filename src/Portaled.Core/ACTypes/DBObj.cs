@@ -253,9 +253,6 @@ namespace Portaled.Core.ACTypes
         : ACType<CGfxObj>
     {
         public CMaterialEx Material => CMaterialEx.Make<CMaterialEx>(ptr->material);
-        public CSurfaceEx[] GetSurfaces() => ArrayWrapper.Make2<CSurfaceEx>(m_rgsurfaces, ptr->num_surfaces);
-        {
-        }
     }
 
     public unsafe struct CGfxObj //(align(8))

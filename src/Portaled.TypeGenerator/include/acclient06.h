@@ -5708,14 +5708,6 @@ struct SourceImageData
 };
 
 
-struct __declspec(align(8)) RenderSurfaceD3D : RenderSurface
-{
-  IDirect3DSurface9 *m_pD3DSurface;
-  _D3DPOOL m_pool;
-  bool m_CountAsSystemMemory;
-  bool m_CountAsVideoMemory;
-};
-
 
 struct tagCONNECTDATA
 {

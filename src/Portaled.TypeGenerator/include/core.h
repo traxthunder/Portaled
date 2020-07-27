@@ -38,7 +38,9 @@ struct ReferenceCountTemplate_1048576_0Vtbl;
 struct GrowBuffer;
 struct ArchiveVtbl;
 
-class Interface {};
+struct Interface {
+	void* vfptr;
+};
 template <typename K, typename V, size_t Size>;
 
 //struct HashTable<unsigned long,Interface *,0>;

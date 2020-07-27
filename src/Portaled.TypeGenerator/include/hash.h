@@ -36,7 +36,6 @@ struct HashList
 {
 	//IntrusiveHashList_HashListData<K, HashList<K, HashList<K, V, S>, S>*, S> m_ihlIntrusive;
 	void* m_ihlIntrusive;
-
 };
 
 template <typename K, typename V, size_t S>
@@ -46,17 +45,14 @@ __declspec(align(4)) struct HashList_HashListData //LIKELY WRONG
 	bool m_data;
 };
 
-
-
-
 template <typename K, typename V, size_t S>
 struct IntrusiveHashTable
 {
 	//IntrusiveHashTable_HashListData<K, HashList<K, HashList<K, V, S>, S>*, S>Vtbl* vfptr;
-	void* vfptr;
-	HashList_HashListData<K, HashList<K, V, S>, S>* m_aInplaceBuckets[23];
-	HashList_HashListData<K, HashList<K, V, S>, S>** m_buckets;
-	HashList_HashListData<K, HashList<K, V, S>, S>** m_firstInterestingBucket;
+	void* vfptr; //only has vecdeldtor
+	V* m_aInplaceBuckets[23];
+	V** m_buckets;
+	V** m_firstInterestingBucket;
 	unsigned int m_numBuckets;
 	unsigned int m_numElements;
 };
@@ -76,9 +72,6 @@ struct IntrusiveHashData
 	V m_hashNext;
 };
 
-
-
-
 template <typename K, typename V, size_t S>
 struct IntrusiveHashListData
 {
@@ -86,34 +79,14 @@ struct IntrusiveHashListData
 	DLListData listdata;
 };
 
-
 template <typename K, typename V, size_t S> struct HashTable;
-
-/*
-template <typename K, typename V, size_t S>
-struct HashTableVtbl
-{
-	void* (__thiscall* __vecDelDtor)(HashTable<K, V, S>* this, unsigned int);
-};
-*/
 template <typename K, typename V> struct HashTableData;
-
 template <typename K, typename V, size_t S>
 struct HashTable
 {
-	void* vfptr;
+	void* vfptr; //only has vecdeldtor
 	IntrusiveHashTable<K, HashTableData<K, V>*, S> m_intrusiveTable;
 };
-
-
-/*
-template <typename K, typename V>
-struct IntrusiveHashData
-{
-	K m_hashKey;
-	HashTableData<K, V>* m_hashNext;
-};
-*/
 
 template <typename K, typename V>
 struct HashTableData
@@ -158,13 +131,14 @@ struct HashSet
 	IntrusiveHashTable<T, HashSetData<T>*, 1> m_intrusiveTable;
 };
 
-
-
 struct LongHashData : HashBaseData<unsigned long>
 {
 };
 
 
-
+template <typename K, typename V>
+struct AutoGrowHashTable : HashTable<K, V, 1>
+{
+};
 
 #endif

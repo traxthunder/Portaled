@@ -92,6 +92,7 @@
     <Content Include="include\acclient.h" />
     <Content Include="include\core.h" />
     <Content Include="include\dbobj.h" />
+    <Content Include="include\dbocache.h" />
     <Content Include="include\enums.h" />
     <Content Include="include\hash.h" />
     <Content Include="include\list.h" />

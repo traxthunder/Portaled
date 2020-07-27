@@ -482,11 +482,6 @@ struct ArchiveVtbl
 };
 
 
-struct ReferenceCountTemplate_1048576_0
-{
-  ReferenceCountTemplate_1048576_0Vtbl *vfptr;
-  unsigned int m_cRef;
-};
 
 
 struct __declspec(align(2)) GrowBuffer : ReferenceCountTemplate_1048576_0
@@ -942,10 +937,6 @@ struct _CMSG_RECIPIENT_ENCRYPTED_KEY_INFO
 };
 
 
-struct IUnknown
-{
-  IUnknownVtbl *vfptr;
-};
 
 
 struct IUnknownVtbl

@@ -1216,9 +1216,6 @@ struct HashTableData<CaseInsensitiveStringBase<PStringBase<unsigned short> >,lon
 };
 
 
-struct AutoGrowHashTable<CaseInsensitiveStringBase<PStringBase<unsigned short> >,long> : HashTable<CaseInsensitiveStringBase<PStringBase<unsigned short> >,long,1>
-{
-};
 
 
 struct COMPILE_TIME_ASSERTION_FAILURE<1>
@@ -3556,32 +3553,6 @@ struct HashTable<unsigned long,float,0>
 };
 
 
-struct FreelistDef
-{
-  bool m_bRecycle;
-  bool m_bShrink;
-  unsigned int m_nIdealSize;
-  unsigned int m_nMaxSize;
-};
-
-
-struct DBOCache
-{
-  DBOCacheVtbl *vfptr;
-  AutoGrowHashTable<IDClass<_tagDataID,32,0>,DBObj *> m_ObjTable;
-  unsigned int m_dbtype;
-  HashTable<unsigned long,float,0> m_fidelityTable;
-  bool m_fCanKeepFreeObjs;
-  bool m_fKeepFreeObjs;
-  bool m_bFreelistActive;
-  FreelistDef m_freelistDef;
-  DBObj *m_pOldestFree;
-  DBObj *m_pYoungestFree;
-  unsigned int m_nFree;
-  unsigned int m_nTotalCount;
-  DBObj *(__cdecl *m_pfnAllocator)();
-};
-
 
 struct IntrusiveHashTable<unsigned long,HashList<unsigned long,HashList<unsigned long,ActionMapValue,1>,1>_HashListData *,1>Vtbl
 {
@@ -3842,12 +3813,6 @@ struct InterfaceInfo<IObjectFactory>
 };
 
 
-struct QualifiedDataID
-{
-  unsigned int Type;
-  IDClass<_tagDataID,32,0> ID;
-};
-
 
 struct SmartArray<IDClass<_tagDataID,32,0>,1>
 {
@@ -3901,11 +3866,6 @@ struct QualifiedDataIDArray : IntrusiveHashTable<QualifiedDataID,DBObjSaveInfo *
   unsigned int m_LastBracketIndex;
 };
 
-
-struct IDataGraph
-{
-  IDataGraphVtbl *vfptr;
-};
 
 
 struct IDataGraphVtbl
@@ -4033,11 +3993,6 @@ struct HashTableData<unsigned long,CaseInsensitiveStringBase<PStringBase<char> >
 };
 
 
-struct AsyncCacheCallback
-{
-  AsyncCacheCallbackVtbl *vfptr;
-};
-
 
 struct AsyncCacheCallbackVtbl
 {
@@ -4139,16 +4094,6 @@ struct AutoGrowHashTable<AsyncContext,AsyncCache_CCallbackHandler *> : HashTable
 {
 };
 
-
-struct __declspec(align(4)) AsyncCache
-{
-  AsyncCacheVtbl *vfptr;
-  TDynamicCircularArray<AsyncCache_CCallbackHandler *> m_PendingCallbacks;
-  AutoGrowHashTable<QualifiedDataID,CAsyncGetRequest *> m_PendingGets;
-  AutoGrowHashTable<AsyncContext,AsyncCache_CCallbackHandler *> m_BusyCallbacks;
-  unsigned int dwNextCallbackHandle;
-  bool m_bCallingPendingCallbacks;
-};
 
 
 union $F1026C46A91364D736E48DC9BF562217
@@ -4307,12 +4252,6 @@ const struct SmartArray<_STL_pair<unsigned long,QualifiedDataIDArray>,1>
   unsigned int m_num;
 };
 
-
-union $6132C438F0B638693FB2F3E0AF1DACE5
-{
-  unsigned int Op;
-  AsyncCache_AsyncOperation eOp;
-};
 
 
 struct SmartArray<AsyncCache_CAsyncRequest_CCallbackWrapper,1>

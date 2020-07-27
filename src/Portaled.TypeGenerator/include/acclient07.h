@@ -1572,15 +1572,6 @@ struct AttackInfo
 };
 
 
-struct AnimData : PackObj
-{
-  IDClass<_tagDataID,32,0> anim_id;
-  int low_frame;
-  int high_frame;
-  float framerate;
-};
-
-
 struct SmartArray<CPhysicsObj *,1>
 {
   CPhysicsObj **m_data;
@@ -6177,16 +6168,6 @@ struct __declspec(align(4)) LockGrabber<SharedCriticalSection>
 
 
 
-struct __declspec(align(4)) MotionData : PackObj, LongHashData
-{
-  char num_anims;
-  AnimData *anims;
-  AC1Legacy_Vector3 velocity;
-  AC1Legacy_Vector3 omega;
-  char bitfield;
-};
-
-
 struct DBWave : SerializeUsingPackDBObj, WaveFile
 {
 };
@@ -6626,13 +6607,6 @@ struct LongNIValHashIter<CPhysicsObj_CollisionRecord> : HashBaseIter<unsigned lo
 struct LongNIValHashData<CPhysicsObj_CollisionRecord> : HashBaseData<unsigned long>
 {
   CPhysicsObj_CollisionRecord data;
-};
-
-
-struct MotionTableManager_AnimNode : DLListData
-{
-  unsigned int motion;
-  unsigned int num_anims;
 };
 
 
