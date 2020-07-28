@@ -1,5 +1,7 @@
 # Portaled
 Client-Side Content Driver for the Asheron's Call MMORPG
+Discord (New server as of July 28 2020): https://discord.gg/7K6Dj22 
+
 
 This project is in a VERY EARLY phase. The code will not look nice, and you may have a hard time getting it to work without some technical knowledge. The project is in need of volunteers who want to help expand and improve the capabilities.
 
